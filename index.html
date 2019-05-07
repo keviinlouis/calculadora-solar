@@ -9,34 +9,66 @@
 <body>
 
 <div class="container">
-    <div class="row black">
-        <div class="alert alert-danger" role="alert" id="error-alert" style="display: none">Preencha todos os campos
-        </div>
-        <div class="col-md-12">
-            <input type="text" id="media_anual">
-        </div>
-        <div class="col-md-12">
-            <select name="tipo" id="tipo">
-                <option value="" disabled>Selecione um tipo</option>
-                <option value="30">Monofásico</option>
-                <option value="50">Bifásico</option>
-                <option value="100">Trifásico</option>
-            </select>
-        </div>
-        <div class="col-md-12">
-            <label for="estado">Estado</label>
-            <select name="estado" id="estado">
-                <option value="" disabled selected>Selecione um estado</option>
-            </select>
-        </div>
-        <div class="col-md-12">
-            <label for="cidade">Cidade</label>
-            <select name="cidade" id="cidade">
-                <option value="" disabled selected>Selecione um estado</option>
-            </select>
-        </div>
-        <div class="col-md-12">
-            <button class="btn btn-success" id="btn-calcular">Calcular</button>
+    <div class="card">
+        <h5 class="card-header">Calculadora Solar</h5>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 row pa-1">
+                    <div class="col-md-12">
+                        <div class="alert alert-danger" role="alert" id="error-alert" style="display: none">
+                            Preencha todos os campos
+                        </div>
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label for="media_diaria">Média de gasto diário</label>
+                        <input type="text" id="media_diaria" class="form-control">
+                    </div>
+                    <!--<div class="col-md-12 form-group">-->
+                    <!--<label for="tipo">Tipo de liga</label>-->
+                    <!--<select name="tipo" id="tipo" class="form-control">-->
+                    <!--<option value="" disabled>Selecione um tipo</option>-->
+                    <!--<option value="30">Monofásico</option>-->
+                    <!--<option value="50">Bifásico</option>-->
+                    <!--<option value="100">Trifásico</option>-->
+                    <!--</select>-->
+                    <!--</div>-->
+                    <div class="col-md-12 form-group">
+                        <label for="estado">Estado</label>
+                        <select name="estado" id="estado" class="form-control">
+                            <option value="" disabled selected>Selecione um estado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label for="cidade">Cidade</label>
+                        <select name="cidade" id="cidade" class="form-control">
+                            <option value="" disabled selected>Selecione um estado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12">
+                        <button class="btn btn-success" id="btn-calcular">Calcular</button>
+                    </div>
+                </div>
+                <div class="col-md-6 row pa-1">
+                    <div class="col-md-12">
+                        <b>Capacidade (potência mínima necessária) kWp</b>:<br>
+                        <span id="potenciaMinimaNecessaria">-</span><br>
+                    </div>
+                    <div class="col-md-12">
+                        <b>Peso sobre o telhado Kg</b>:<br>
+                        <span id="pesoSobreTelhado">-</span><br>
+                    </div>
+                    <div class="col-md-12">
+                        <b>Área necessária de telhado m²</b>:<br>
+
+                        <span id="areaNecesariaTelhado">-</span><br>
+                    </div>
+                    <div class="col-md-12">
+                        <b>Produção estimada de energia kWh/ano</b>:<br>
+                        <span id="producaoEstimadaAno">-</span><br>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -53,12 +85,11 @@
         crossorigin="anonymous"></script>
 
 <script>
-    const mediaAnualInput = $('#media_anual');
+    const mediaAnualInput = $('#media_diaria');
     const tipoInput = $('#tipo');
     const estadoInput = $('#estado');
     const cidadeInput = $('#cidade');
     let estados = [];
-
 
 
     function renderSelectEstados() {
@@ -89,10 +120,9 @@
 
     function validate() {
         const inputs = [
-            'mediaAnualInput',
-            'tipoInput',
-            'estadoInput',
-            'cidadeInput'
+            'media_diaria',
+            'estado',
+            'cidade'
         ];
 
         let error = false;
@@ -105,9 +135,7 @@
             }
         });
 
-        if (error) {
-            $('#error-alert').show();
-        }
+        error ? $('#error-alert').show() : $('#error-alert').hide();
 
         return !error;
     }
@@ -123,9 +151,12 @@
         const potenciaMinimaNecessaria = ((consumoMedio / cidade.valor) * 1000) * 1.25;
         const pesoSobreTelhado = (potenciaMinimaNecessaria / 0.33) * 27;
         const areaNecesariaTelhado = (potenciaMinimaNecessaria / 0.3) * 2;
-        const producaoEstimadaAno = potenciaMinimaNecessaria * 30 * (cidade.valor / 1000) * 12
+        const producaoEstimadaAno = potenciaMinimaNecessaria * 30 * (cidade.valor / 1000) * 12;
 
-
+        $('#potenciaMinimaNecessaria').html(`${potenciaMinimaNecessaria} kWp`);
+        $('#pesoSobreTelhado').html(`${pesoSobreTelhado} Kg`);
+        $('#areaNecesariaTelhado').html(`${areaNecesariaTelhado} m²`);
+        $('#producaoEstimadaAno').html(`${producaoEstimadaAno}  kWh/ano`);
     }
 
     $(document).ready(function () {
