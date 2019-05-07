@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+          integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+</head>
+<body>
+
+<div class="container">
+    <div class="row black">
+        <div class="alert alert-danger" role="alert" id="error-alert" style="display: none">Preencha todos os campos
+        </div>
+        <div class="col-md-12">
+            <input type="text" id="media_anual">
+        </div>
+        <div class="col-md-12">
+            <select name="tipo" id="tipo">
+                <option value="" disabled>Selecione um tipo</option>
+                <option value="30">Monofásico</option>
+                <option value="50">Bifásico</option>
+                <option value="100">Trifásico</option>
+            </select>
+        </div>
+        <div class="col-md-12">
+            <label for="estado">Estado</label>
+            <select name="estado" id="estado">
+                <option value="" disabled selected>Selecione um estado</option>
+            </select>
+        </div>
+        <div class="col-md-12">
+            <label for="cidade">Cidade</label>
+            <select name="cidade" id="cidade">
+                <option value="" disabled selected>Selecione um estado</option>
+            </select>
+        </div>
+        <div class="col-md-12">
+            <button class="btn btn-success" id="btn-calcular">Calcular</button>
+        </div>
+    </div>
+</div>
+
+<script
+        src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js"
+        integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
+        integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
+        crossorigin="anonymous"></script>
+
+<script>
+    const mediaAnualInput = $('#media_anual');
+    const tipoInput = $('#tipo');
+    const estadoInput = $('#estado');
+    const cidadeInput = $('#cidade');
+    let estados = [];
+
+
+
+    function renderSelectEstados() {
+        let html = '<option value="" disabled selected>Selecione um estado</option>';
+
+        estados.forEach(estado => {
+            html += `<option value="${estado.estado}">${estado.estado}</option>`
+        });
+
+        estadoInput.html(html)
+    }
+
+    function renderSelectCidades(estadoStr) {
+        const estado = estados.find(item => item.estado === estadoStr);
+
+        if (estado === undefined) {
+            return
+        }
+
+        let html = '<option value="" disabled selected>Selecione uma cidade</option>';
+
+        estado.cidades.forEach(cidade => {
+            html += `<option value="${cidade.cidade}">${cidade.cidade}</option>`
+        });
+
+        cidadeInput.html(html)
+    }
+
+    function validate() {
+        const inputs = [
+            'mediaAnualInput',
+            'tipoInput',
+            'estadoInput',
+            'cidadeInput'
+        ];
+
+        let error = false;
+
+        inputs.forEach(inputName => {
+            const value = $(`#${inputName}`).val();
+
+            if ((!value || !value.length) && !error) {
+                error = true
+            }
+        });
+
+        if (error) {
+            $('#error-alert').show();
+        }
+
+        return !error;
+    }
+
+    function calculate() {
+        if (!validate()) {
+            return
+        }
+
+        const estado = estados.find(item => item.estado === estadoInput.val());
+        const cidade = estado.cidades.find(item => item.cidade === cidadeInput.val());
+        const consumoMedio = mediaAnualInput.val() / 30;
+        const potenciaMinimaNecessaria = ((consumoMedio / cidade.valor) * 1000) * 1.25;
+        const pesoSobreTelhado = (potenciaMinimaNecessaria / 0.33) * 27;
+        const areaNecesariaTelhado = (potenciaMinimaNecessaria / 0.3) * 2;
+        const producaoEstimadaAno = potenciaMinimaNecessaria * 30 * (cidade.valor / 1000) * 12
+
+
+    }
+
+    $(document).ready(function () {
+        $('#btn-calcular').on('click', calculate);
+
+        estadoInput.on('change', function () {
+            renderSelectCidades(estadoInput.val())
+        });
+
+        $.getJSON(
+            "estados.json",
+            function (data) {
+                estados = data
+                renderSelectEstados()
+            }
+        );
+    });
+</script>
+</body>
+</html>
