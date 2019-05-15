@@ -146,37 +146,6 @@
         return !error;
     }
 
-    async function getApiData(cidade) {
-        // const data = await $.getJSON("new_cidades.json");
-        //
-        // let minDiffLatitude = 1
-        // let minDiffLongitude = 1
-        // let row = false;
-        // const cidadeLatitude = cidade.latitude
-        // const cidadeLongitude = cidade.longitude
-        //
-        // for (let i = 0; i < data.length; i++) {
-        //     let item = data[i]
-        //
-        //     const itemLatitude = item["LAT"]
-        //     const itemLongitude = item["LAT"]
-        //     let diffLatitude = (itemLatitude - cidadeLatitude)
-        //     let diffLongitude = (itemLongitude - cidadeLongitude)
-        //
-        //     if (diffLatitude < minDiffLatitude && diffLongitude < minDiffLongitude) {
-        //         minDiffLatitude = diffLatitude
-        //         minDiffLongitude = diffLongitude
-        //         row = item
-        //         console.log(minDiffLongitude, minDiffLatitude, item)
-        //     }
-        // }
-        // return row
-        const url = "http://localhost:8081/https://globalsolaratlas.info/api/data/lta?loc="+cidade.latitude+","+cidade.longitude
-        const data = await $.getJSON(url)
-
-        return (data['GHI'] / 365).toFixed(2)
-    }
-
     async function calculate() {
         if (!validate()) {
             return
@@ -187,7 +156,7 @@
         const estado = estados.find(item => item.estado === estadoInput.val());
         const cidade = estado.cidades.find(item => item.cidade === cidadeInput.val());
 
-        const mediaAnual = await getApiData(cidade)
+        const mediaAnual = cidade.ghi
 
         if (!mediaAnual) {
             $('#not-founded-alert').show()
@@ -195,9 +164,6 @@
             $('#btn-calcular').show()
             return
         }
-
-
-        console.log(mediaAnual)
 
         $('#not-founded-alert').hide()
         $('#loading').hide()

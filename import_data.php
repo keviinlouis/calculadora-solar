@@ -24,7 +24,11 @@ function getCidade($url)
     curl_close($ch);
     return $data;
 }
-function saveCidade($cidade,$estados, $indexEstado, $indexCidade){
+function saveCidade($cidade, $indexEstado, $indexCidade){
+    $json = file_get_contents('./public/estados.json');
+
+    //Decode JSON
+    $estados = json_decode($json, true);
     $estado = $estados[$indexEstado];
     $estado['cidades'][$indexCidade] = $cidade;
     $estados[$indexEstado] = $estado;
@@ -50,6 +54,6 @@ foreach ($estados as $index => $estado) {
         $requestsSended++;
         $response = json_decode(getCidade($url), true);
         $cidade["ghi"] = $response["GHI"];
-        saveCidade($cidade, $estados, $index, $indexCidade);
+        saveCidade($cidade, $index, $indexCidade);
     }
 }
