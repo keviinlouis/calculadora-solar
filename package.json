@@ -4,6 +4,9 @@
   "description": "",
   "main": "app.js",
   "dependencies": {
+    "axios": "^0.18.0",
+    "csv-parse": "^4.4.1",
+    "csv-parser": "^2.2.0",
     "ejs": "^2.6.1",
     "express": "^4.16.4"
   },

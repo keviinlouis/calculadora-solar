@@ -20,7 +20,7 @@
                         </div>
                     </div>
                     <div class="col-md-12 form-group">
-                        <label for="media_diaria">Média de gasto diário</label>
+                        <label for="media_diaria">Média de gasto mensal</label>
                         <input type="number" id="media_diaria" class="form-control">
                     </div>
                     <!--<div class="col-md-12 form-group">-->
@@ -46,12 +46,18 @@
                     </div>
                     <div class="col-md-12">
                         <button class="btn btn-success" id="btn-calcular">Calcular</button>
+                        <div class="spinner-border" role="status" id="loading" style="display: none">
+                            <span class="sr-only">Loading...</span>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-6 row pa-1">
+                    <div class="alert alert-danger" role="alert" id="not-founded-alert" style="display: none">
+                        Não encontramos nenhum dado para esta cidade
+                    </div>
                     <div class="col-md-12">
                         <b>Capacidade (potência mínima necessária) kWp</b>:<br>
-                        <span id="potenciaMinimaNecessaria">-</span><br>
+                        <span id="capacidade">-</span><br>
                     </div>
                     <div class="col-md-12">
                         <b>Peso sobre o telhado Kg</b>:<br>
@@ -83,10 +89,10 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
         integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
         crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.js"></script>
 
 <script>
-    const mediaAnualInput = $('#media_diaria');
-    const tipoInput = $('#tipo');
+    const mediaMensalInput = $('#media_diaria');
     const estadoInput = $('#estado');
     const cidadeInput = $('#cidade');
     let estados = [];
@@ -140,23 +146,83 @@
         return !error;
     }
 
-    function calculate() {
+    async function getApiData(cidade) {
+        // const data = await $.getJSON("new_cidades.json");
+        //
+        // let minDiffLatitude = 1
+        // let minDiffLongitude = 1
+        // let row = false;
+        // const cidadeLatitude = cidade.latitude
+        // const cidadeLongitude = cidade.longitude
+        //
+        // for (let i = 0; i < data.length; i++) {
+        //     let item = data[i]
+        //
+        //     const itemLatitude = item["LAT"]
+        //     const itemLongitude = item["LAT"]
+        //     let diffLatitude = (itemLatitude - cidadeLatitude)
+        //     let diffLongitude = (itemLongitude - cidadeLongitude)
+        //
+        //     if (diffLatitude < minDiffLatitude && diffLongitude < minDiffLongitude) {
+        //         minDiffLatitude = diffLatitude
+        //         minDiffLongitude = diffLongitude
+        //         row = item
+        //         console.log(minDiffLongitude, minDiffLatitude, item)
+        //     }
+        // }
+        // return row
+        const url = "http://localhost:8081/https://globalsolaratlas.info/api/data/lta?loc="+cidade.latitude+","+cidade.longitude
+        const data = await $.getJSON(url)
+
+        return (data['GHI'] / 365).toFixed(2)
+    }
+
+    async function calculate() {
         if (!validate()) {
             return
         }
+        $('#btn-calcular').hide()
+        $('#loading').show()
 
         const estado = estados.find(item => item.estado === estadoInput.val());
         const cidade = estado.cidades.find(item => item.cidade === cidadeInput.val());
-        const consumoMedio = mediaAnualInput.val() / 30;
-        const potenciaMinimaNecessaria = ((consumoMedio / cidade.valor) * 1000) * 1.25;
-        const pesoSobreTelhado = (potenciaMinimaNecessaria / 0.33) * 27;
-        const areaNecesariaTelhado = (potenciaMinimaNecessaria / 0.3) * 2;
-        const producaoEstimadaAno = potenciaMinimaNecessaria * 30 * (cidade.valor / 1000) * 12;
 
-        $('#potenciaMinimaNecessaria').html(`${potenciaMinimaNecessaria} kWp`);
-        $('#pesoSobreTelhado').html(`${pesoSobreTelhado} Kg`);
-        $('#areaNecesariaTelhado').html(`${areaNecesariaTelhado} m²`);
-        $('#producaoEstimadaAno').html(`${producaoEstimadaAno}  kWh/ano`);
+        const mediaAnual = await getApiData(cidade)
+
+        if (!mediaAnual) {
+            $('#not-founded-alert').show()
+            $('#loading').hide()
+            $('#btn-calcular').show()
+            return
+        }
+
+
+        console.log(mediaAnual)
+
+        $('#not-founded-alert').hide()
+        $('#loading').hide()
+        $('#btn-calcular').show()
+
+        const mediaMensal = mediaMensalInput.val()
+        const consumoMedio = (mediaMensal / 30);
+        const capacidadeGeracao = (consumoMedio / mediaAnual) * 1.25;
+        const pesoSobreTelhado = (capacidadeGeracao / 0.33) * 30;
+        const areaNecesariaTelhado = (capacidadeGeracao / 0.33) * 2.2;
+        const producaoEstimadaAno = capacidadeGeracao * 30 * mediaAnual * 12;
+
+        console.log({
+            mediaMensal,
+            consumoMedio,
+            capacidadeGeracao,
+            pesoSobreTelhado,
+            areaNecesariaTelhado,
+            producaoEstimadaAno
+        })
+
+        $('#capacidade').html(`${parseFloat(capacidadeGeracao).toFixed(2)} kWp`);
+        $('#pesoSobreTelhado').html(`${parseFloat(pesoSobreTelhado).toFixed(2)} Kg`);
+        $('#areaNecesariaTelhado').html(`${parseFloat(areaNecesariaTelhado).toFixed(2)} m²`);
+        $('#producaoEstimadaAno').html(`${parseFloat(producaoEstimadaAno).toFixed(2)}  kWh/ano`);
     }
 
     $(document).ready(function () {
