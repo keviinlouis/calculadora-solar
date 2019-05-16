@@ -156,7 +156,7 @@
         const estado = estados.find(item => item.estado === estadoInput.val());
         const cidade = estado.cidades.find(item => item.cidade === cidadeInput.val());
 
-        const mediaAnual = cidade.ghi
+        const mediaAnual = cidade.ghi/365
 
         if (!mediaAnual) {
             $('#not-founded-alert').show()
