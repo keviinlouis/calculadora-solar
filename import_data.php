@@ -41,18 +41,18 @@ foreach ($estados as $index => $estado) {
     $countCidades = count($estado['cidades']);
 
     foreach ($estado['cidades'] as $indexCidade => $cidade) {
-        if(isset($cidade['ghi'])){
+        if(isset($cidade['ghi']) && $cidade['ghi']){
             continue;
         }
         echo 'Cidade '.$indexCidade.' de '.$countCidades.PHP_EOL;
         $url = "http://localhost:8081/https://globalsolaratlas.info/api/data/lta?loc=" . $cidade["latitude"] . "," . $cidade["longitude"];
-        if($requestsSended > 22) {
-            echo 'Max request reach, wait 10 seconds'.PHP_EOL;
-            sleep(10);
-            $requestsSended = 0;
-        }
         $requestsSended++;
         $response = json_decode(getCidade($url), true);
+        if(!$response["GHI"]){
+            echo 'GHI not founded for '. $cidade["latitude"] . "," . $cidade["longitude"].PHP_EOL;
+            var_dump($response);
+            exit;
+        }
         $cidade["ghi"] = $response["GHI"];
         saveCidade($cidade, $index, $indexCidade);
     }
